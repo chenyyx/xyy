@@ -363,6 +363,8 @@ torch.optim 实现所有这些方法。
 3.定义一个损失函数
 4.在训练数据上训练网络
 5.在测试数据上测试网络
+
+## 1、加载并规范化 CIFAR-10
 '''
 
 # 1、加载并规范化 CIFAR10，使用 torchvision ，加载 CIFAR10 非常简单
@@ -388,4 +390,147 @@ testloader = torch.utils.data.DataLoader(testset, batch_size=4, shuffle=False, n
 # 图片相对应的类别label，也就是每一类图片对应的类别
 classes = ('plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck')
 
+
+'''
+我们将训练图像展示出来
+'''
+import matplotlib.pyplot as plt
+import numpy as np
+
+# 展示一张图片的函数
+def imshow(img):
+    img = img / 2 + 0.5     # 未正则化
+    # 将 tensor() 转换为 numpy()
+    npimg = img.numpy()
+    # 调用 imshow函数
+    plt.imshow(np.transpose(npimg, (1, 2, 0)))
+
+
+# 获取一些随机的训练图像
+# iter() 函数用来生成迭代器。如： lst = [1, 2, 3]  for i in iter(lst): print(i)  得到的结果： 1 2 3
+dataiter = iter(trainloader)
+# 将得到的值赋值给 images 和 labels
+images, labels = dataiter.next()
+
+# 展示图片
+imshow(torchvision.utils.make_grid(images))
+# 打印相应的 labels
+print(' '.join('%5s' % classes[labels[j]] for j in range(4)))
+
+'''
+## 2、定义一个卷积神经网络
+从神经网络部分复制神经网络, 并修改它以获取 3 通道图像(而不是定义的 1 通道图像).
+'''
+import torch.nn as nn
+import torch.nn.functional as F
+
+
+class Net(nn.Module):
+    def __init__(self):
+        super(Net, self).__init__()
+        self.conv1 = nn.Conv2d(3, 6, 5)
+        self.pool = nn.MaxPool2d(2, 2)
+        self.conv2 = nn.Conv2d(6, 16, 5)
+        self.fc1 = nn.Linear(16 * 5 * 5, 120)
+        self.fc2 = nn.Linear(120, 84)
+        self.fc3 = nn.Linear(84, 10)
+
+    def forward(self, x):
+        x = self.pool(F.relu(self.conv1(x)))
+        x = self.pool(F.relu(self.conv2(x)))
+        x = x.view(-1, 16 * 5 * 5)
+        x = F.relu(self.fc1(x))
+        x = F.relu(self.fc2(x))
+        x = self.fc3(x)
+        return x
+
+net = Net()
+
+
+'''
+## 3、定义一个损失函数和优化器
+我们使用交叉熵损失函数( CrossEntropyLoss )和随机梯度下降( SGD )优化器.
+'''
+import torch.optim as optim
+
+criterion = nn.CrossEntropyLoss()
+optimizer = optim.SGD(net.parameters(), lr=0.001, momentum=0.9)
+
+
+'''
+## 4、训练网络
+事情开始变得有趣了，我们只需循环遍历数据迭代器，并将输入提供给网络和优化器就好。
+'''
+for epoch in range(2):  # 多次遍历数据集
+
+    running_loss = 0.0
+    for i, data in enumerate(trainloader, 0):
+        # 获得 输入数据集
+        inputs, labels = data
+
+        # 将梯度清零
+        optimizer.zero_grad()
+
+        # 前向传播 + 反向传播 + 优化
+        outputs = net(inputs)
+        loss = criterion(outputs, labels)
+        loss.backward()
+        optimizer.step()
+
+        # 打印 统计信息
+        running_loss += loss.item()
+        if i % 2000 == 1999:    # 每 2000 小批次打印一次
+            print('[%d, %5d] loss: %.3f' %
+                  (epoch + 1, i + 1, running_loss / 2000))
+            running_loss = 0.0
+
+print('Finished Training')
+
+'''
+## 5、在测试数据集上测试网络
+'''
+# 首先显示测试集中的图像以便熟悉
+dataiter = iter(testloader)
+images, labels = dataiter.next()
+
+# 打印图像
+imshow(torchvision.utils.make_grid(images))
+print('GroundTruth: ', ' '.join('%5s' % classes[labels[j]] for j in range(4)))
+
+# 我们看看神经网络认为这些例子是什么
+outputs = net(Variable(images))
+
+# 输出的是10个类别的能量. 一个类别的能量越高, 则可以理解为网络认为越多的图像是该类别的. 那么, 让我们得到最高能量的索引
+_, predicted = torch.max(outputs.data, 1)
+
+print('Predicted: ', ' '.join('%5s' % classes[predicted[j]] for j in range(4)))
+
+# 让我们看看网络如何在整个数据集上执行.
+correct = 0
+total = 0
+for data in testloader:
+    images, labels = data
+    outputs = net(Variable(images))
+    _, predicted = torch.max(outputs.data, 1)
+    total += labels.size(0)
+    correct += (predicted == labels).sum()
+
+print('Accuracy of the network on the 10000 test images: %d %%' % (100 * correct / total))
+
+# 我们来看看哪些类别表现良好, 哪些类别表现不佳
+class_correct = list(0. for i in range(10))
+class_total = list(0. for i in range(10))
+for data in testloader:
+    images, labels = data
+    outputs = net(Variable(images))
+    _, predicted = torch.max(outputs.data, 1)
+    c = (predicted == labels).squeeze()
+    for i in range(4):
+        label = labels[i]
+        class_correct[label] += c[i]
+        class_total[label] += 1
+
+
+for i in range(10):
+    print('Accuracy of %5s : %2d %%' % (classes[i], 100 * class_correct[i] / class_total[i]))
 
