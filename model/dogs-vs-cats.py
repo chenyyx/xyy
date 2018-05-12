@@ -147,6 +147,25 @@ train_dataset = GetData(train_path, train=True)
 # 将训练数据转换成 mini-batch 形式
 load_train = data.DataLoader(train_dataset, batch_size=20, shuffle=True, num_workers=1)
 
+'''
+utils.data.DataLoader() 解析
+class torch.utils.data.DataLoader(dataset, batch_size=1, shuffle=False, sampler=None, batch_sampler=None, num_workers=0, collate_fn=<function default_collate>, pin_memory=False, drop_last=False, timeout=0, worker_init_fn=None)
+数据加载器。组合数据集和采样器，并在数据集上提供单个或多个进程迭代器。
+参数：
+dataset(Dataset) --- 从这之中加载数据的数据集。
+batch_size (int, 可选) --- 每个 batch 加载多少个样本（默认值为：1）
+shuffle (bool, 可选) --- 设置为 True 时，会在每个 epoch 时期重新组合数据（默认值：False）
+sampler (Sampler, 可选) --- 定义从数据集中抽取样本的策略。如果指定，那么 shuffle 必须是 False 。
+batch_sampler (Sampler, 可选) --- 类似采样器，但一次返回一批量的索引（index）。与 batch_size, shuffle, sampler 和 drop_last 相互排斥。
+num_workers (int, 可选) --- 设置有多少个子进程用于数据加载。0 表示数据将在主进程中加载。（默认：0）
+collate_fn (callable, 可选) --- 合并样本列表以形成 mini-batch 
+pin_memory (bool, 可选) ---  如果为 True，数据加载器会在 tensors 返回之前将 tensors 复制到 CUDA 固定内存中。
+drop_last (bool, 可选) --- 如果 dataset size （数据集大小）不能被 batch size （批量大小）整除，则设置为 True 以删除最后一个 incomplete batch（未完成批次）。
+                          如果设置为 False 和 dataset size（数据集大小）不能被 batch size（批量大小）整除，则最后一批将会更小。（默认：False）
+timeout (numeric, 可选) --- 如果是正值，则为从 worker 收集 batch 的超时值。应该始终是非负的。（默认：0）
+worker_init_fn (callable, 可选) --- 如果不是 None，那么将在每个工人子进程上使用 worker id（在 [0，num_workers - 1] 中的 int）作为输入，在 seeding 和加载数据之前调用这个子进程。（默认：无）
+'''
+
 # 测试数据的获取
 # 首先设置测试数据的路径
 test_path = 'D:/dataset/dogs-vs-cats/test1'

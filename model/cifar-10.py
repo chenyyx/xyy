@@ -4,7 +4,7 @@
 
 # 引入第三方库，加载 CIFAR 10 会非常简单
 import torch
-# torchvision 这个包需要自己再安装
+# torchvision 这个包需要自己再安装，直接使用 pip install torchvision 这个命令就可以安装
 import torchvision
 # transforms 用于数据预处理
 import torchvision.transforms as transforms
