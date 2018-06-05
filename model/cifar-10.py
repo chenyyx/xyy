@@ -54,7 +54,21 @@ images, labels = dataiter.next()
 代码是没有问题的
 如果在 vscode 中显示不出来，那就是用 Jupyter 来运行，可以看到结果的
 '''
-# 展示图片
+
+'''
+torchvision.utils.make_grid(tensor, nrow=8, padding=2, normalize=False, range=None, scale_each=False, pad_value=0)
+制作一个图像的网格（grid）。
+参数：
+ - tensor (Tensor 或 list) --- 形状为 (B x C x H x W) 的 4D 小批量 tensor 或所有相同尺寸的图像列表。
+ - nrow (int, 可选) ------ grid 每一行中显示的图像数量，最终的 grid 大小是 (B / nrow, nrow) ，默认是 8 
+ - padding (int, 可选) --- 填充量。缺省值是 2.
+ - normalize (bool, 可选)----- 如果为 True，则通过减去最小值并除以最大像素值将图像归一化到范围 (0,1) 。
+ - range (tuple, 可选) --- tuple(min, max) ，其中 min 和 max 是数字，然后这些数字用于 normalize 图像。默认情况下，最大值和最小值由 tensor 计算。
+ - scale_each (bool, 可选) --- 如果为 True，则分别在一批图像中缩放每个图像，而不是所有图像上的 (min, max) 。
+ - pad_value (float, 可选) --- 填充像素的值。
+'''
+
+# 展示图片 make_grid() 函数的意义看上面的部分
 imshow(torchvision.utils.make_grid(images))
 # 打印出来
 print(' '.join('%5s' % classes[labels[j]] for j in range(4)))
